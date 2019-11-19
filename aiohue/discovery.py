@@ -14,7 +14,7 @@ async def discover_nupnp(websession):
         return [Bridge(item['internalipaddress'], websession=websession)
                 for item in (await res.json())]
 
-async def discover_mdns(websession=None, timeout=5):
+async def discover_mdns(websession, timeout=5):
     discovered_bridge = []
 
     async def do_close(zc):
@@ -37,4 +37,4 @@ async def discover_mdns(websession=None, timeout=5):
     loop = asyncio.get_event_loop()
     zeroconf = Zeroconf(loop)
     await find_hue(zeroconf)
-    return [Bridge(ipaddress.ip_address(item.address), websession=websession) for item in discovered_bridge]
+    return [Bridge(ipaddress.ip_address(item.address), websession) for item in discovered_bridge]
