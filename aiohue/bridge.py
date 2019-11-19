@@ -1,5 +1,6 @@
 import asyncio
 
+import aiohttp
 from aiohttp import client_exceptions
 
 from .config import Config
@@ -13,11 +14,15 @@ from .errors import raise_error, ResponseError, RequestError
 class Bridge:
     """Control a Hue bridge."""
 
-    def __init__(self, host, websession, *, username=None):
+    def __init__(self, host, *, websession=None, username=None):
         self.host = host
         self.username = username
-        self.websession = websession
-
+        if websession:
+            self.dedicated_session = False
+            self.websession = websession
+        else:
+            self.dedicated_session = True
+            self.websession = aiohttp.ClientSession()
         self.config = None
         self.groups = None
         self.lights = None
@@ -67,6 +72,10 @@ class Bridge:
             raise RequestError(
                 'Error requesting data from {}: {}'.format(self.host, err)
             ) from None
+
+    def __del__(self):
+        if self.dedicated_session:
+            self.websession.close()
 
 
 def _raise_on_error(data):
